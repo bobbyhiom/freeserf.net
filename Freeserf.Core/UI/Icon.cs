@@ -21,6 +21,7 @@
 
 namespace Freeserf.UI
 {
+    using Freeserf.Render;
     using Data = Data.Data;
 
     internal class Icon : GuiObject

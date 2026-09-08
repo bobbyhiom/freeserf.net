@@ -20,6 +20,7 @@
  * along with freeserf.net. If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Silk.NET.Input;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -157,6 +158,13 @@ namespace Freeserf
                 return new List<string>();
 
             return data[section].Keys.ToList();
+        }
+
+        public Dictionary<string, string> GetValueDictionary(string section)
+        {
+            return data.TryGetValue(section, out var values)
+                ? new(values) 
+                : new();
         }
 
         public bool Contains(string section, string name)

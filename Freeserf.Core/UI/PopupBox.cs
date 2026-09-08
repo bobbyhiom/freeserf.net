@@ -20,11 +20,11 @@
  * along with freeserf.net. If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Freeserf.Network;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Freeserf.Network;
 
 namespace Freeserf.UI
 {
@@ -98,7 +98,8 @@ namespace Freeserf.UI
             JsCalibUpLeft,
             JsCalibDownRight,
             JsCalibCenter,
-            CtrlsInfo
+            CtrlsInfo,
+            Rebind
         }
 
         public enum BackgroundPattern
@@ -343,7 +344,9 @@ namespace Freeserf.UI
             JumpToPlayer2,
             JumpToPlayer3,
             JumpToPlayer4,
-            FindRequestedSerf
+            FindRequestedSerf,
+            OptionsShowKeyBindingPopup,
+            RebindNextPage
         }
 
         Interface interf;
@@ -355,9 +358,11 @@ namespace Freeserf.UI
 
         readonly BuildingButton[] buildings = new BuildingButton[8]; // max 8 buildings per popup
         readonly Button flipButton = null;
+        readonly Button resetButton = null;
         readonly Dictionary<Icon, bool> icons = new Dictionary<Icon, bool>(); // value: in use
         readonly Dictionary<Button, bool> buttons = new Dictionary<Button, bool>(); // value: in use
         readonly Dictionary<TextField, bool> texts = new Dictionary<TextField, bool>(); // value: in use
+        readonly List<SettingTextInput> settingTextInputs = new();
         readonly SlideBar[] slideBars = new SlideBar[9];
         const int SlideBarFactor = 1310;
         TextField clickableTextField = null;
@@ -511,6 +516,10 @@ namespace Freeserf.UI
             flipButton.Clicked += FlipButton_Clicked;
             AddChild(flipButton, 0, 0, false);
 
+            resetButton = new Button(interf, 32, 16, Data.Resource.CustomButtons, 0u, 1);
+            resetButton.Clicked += ResetButton_Clicked;
+            AddChild(resetButton, 0, 0, false);
+
             for (int i = 0; i < slideBars.Length; ++i)
             {
                 slideBars[i] = new SlideBar(interf, 20); // should always be in front of other elements
@@ -540,6 +549,13 @@ namespace Freeserf.UI
                     break;
                     // TODO ...
             }
+        }
+
+        private void ResetButton_Clicked(object sender, Button.ClickEventArgs args)
+        {
+            KeyBindings.SetDefaultKeys();
+            ClearSettingsTextValues();
+            DrawRebindContent();
         }
 
         void PopupBox_SlideBarFillChanged(object sender, System.EventArgs args)
@@ -716,6 +732,11 @@ namespace Freeserf.UI
             Displayed = false;
         }
 
+        public void SetBorder()
+        {
+            //this.bord
+        }
+
         void SetBox(Type box)
         {
             if (interf.AccessRights == Viewer.Access.RestrictedSpectator)
@@ -847,6 +868,7 @@ namespace Freeserf.UI
                 case Type.QuitConfirm:
                 case Type.NoSaveQuitConfirm:
                 case Type.Options:
+                case Type.Rebind:
                 case Type.ExtendedOptions:
                 case Type.ScrollOptions:
                 case Type.GameInitOptions:
@@ -1007,12 +1029,42 @@ namespace Freeserf.UI
             return newText;
         }
 
+        void SetTextInput(int x, int y, string text, SettingKey settingKey)
+        {
+            // Find existing or create
+            SettingTextInput input = settingTextInputs.FirstOrDefault(x => x.settingKey == settingKey);
+
+            if (input == null)
+            {
+                var newSettingTextInput = new SettingTextInput(interf, settingKey, 8);
+                newSettingTextInput.Text = text;
+                newSettingTextInput.Displayed = Displayed;
+                newSettingTextInput.SetSize(64, 8);
+                AddChild(newSettingTextInput, x, y, true);
+                settingTextInputs.Add(newSettingTextInput);
+            } else {
+                input.Displayed = Displayed;
+            }
+        }
+        void ClearSettingsTextValues()
+        {
+            foreach(var settingTextInput in settingTextInputs)
+            {
+                DeleteChild(settingTextInput);
+            }
+            settingTextInputs.Clear();
+        }
         void ClearTexts()
         {
             foreach (var text in texts.Keys.ToList())
             {
                 texts[text] = false;
                 text.Displayed = false;
+            }
+
+            foreach (var textInput in settingTextInputs.ToList())
+            {
+                textInput.Displayed = false;
             }
         }
 
@@ -2709,6 +2761,8 @@ namespace Freeserf.UI
             SetText(16, 39, "Sound");
             SetText(16, 48, "effects");
             SetText(16, 63, "Volume");
+            SetText(16, 83, "Fullscreen");
+            SetText(16, 103, "Rebind");
 
             // Music
             var player = Audio?.GetMusicPlayer();
@@ -2733,13 +2787,54 @@ namespace Freeserf.UI
             SetNumberText(72, 63, (uint)Misc.Round(volume));
 
             // Fullscreen
-            SetText(16, 90, "Fullscreen");
+            SetButton(112, 79, interf.RenderView.Fullscreen ? 288u : 220u, Action.OptionsFullscreen);
 
-            SetButton(112, 86, interf.RenderView.Fullscreen ? 288u : 220u, Action.OptionsFullscreen);
+            // Rebind
+            SetButton(112, 99, interf.RenderView.Fullscreen ? 288u : 220u, Action.OptionsShowKeyBindingPopup);
 
+            // Bottom of menu
             SetButton(104, 137, 61u, Action.ShowExtendedOptions); // flip
             SetButton(120, 137, 60u, closeAction); // exit
         }
+
+        static int rebindContentPageNumber = 0;
+
+        void DrawRebindBox(Action closeAction)
+        {
+            this.SetWideBox();
+
+            DrawRebindContent();
+
+            resetButton.MoveTo(40, 170);
+            resetButton.Displayed = Displayed;
+            SetButton(294, 170, 61u, Action.RebindNextPage); // flip
+            SetButton(316, 170, 60u, closeAction); // exit
+        }
+
+        void DrawRebindContent()
+        {
+            int startHeight = 25;
+            int linesPerPage = 7;
+
+            int index = 0;
+            var bindings = KeyBindings.Bindings.Skip(rebindContentPageNumber * linesPerPage).Take(linesPerPage);
+
+            if (bindings.Count() == 0)
+            {
+                // Out of bindings to show. Back to start.
+                rebindContentPageNumber = 0;
+                DrawRebindContent();
+                return;
+            }
+
+            foreach (var binding in bindings)
+            {
+                SetText(55, startHeight + (index * 20), binding.friendlyName);
+                SetTextInput(240, startHeight + (index * 20), binding.character.ToString(),binding.settingKey);
+                index++;
+            }
+        }
+
 
         void DrawMineOutputBox()
         {
@@ -4315,6 +4410,13 @@ namespace Freeserf.UI
                 case Action.FindRequestedSerf:
                     FindRequestedSerf(interf.Game.GetBuilding(interf.Player.SelectedObjectIndex));
                     break;
+                case Action.OptionsShowKeyBindingPopup:
+                    SetBox(Type.Rebind);
+                    break;
+                case Action.RebindNextPage:
+                    rebindContentPageNumber++;
+                    SetBox(Type.Rebind);
+                    break;
                 default:
                     Log.Warn.Write(ErrorSystemType.UI, "unhandled action " + action.ToString());
                     break;
@@ -4362,6 +4464,13 @@ namespace Freeserf.UI
                 HandleAction(Action.BuildFlag, x, y);
             }
         }
+        //public override bool HandleEvent(Freeserf.Event.EventArgs e)
+        //{
+        //    if (interf.PopupBox != null && interf.PopupBox.Displayed)
+        //        return interf.PopupBox.HandleEvent(e);
+
+        //    return base.HandleEvent(e);
+        //}
 
         protected override void InternalHide()
         {
@@ -4535,6 +4644,9 @@ namespace Freeserf.UI
                 case Type.DiskMsg:
                     DrawDiskMessageBox();
                     break;
+                case Type.Rebind:
+                    DrawRebindBox(Action.CloseBox);
+                    break;
                 default:
                     break;
             }
@@ -4622,8 +4734,12 @@ namespace Freeserf.UI
                     return true;
                 }
             }
+            else if ( Box == Type.Rebind && clickableTextField != null)
+            {
 
-            base.HandleClickLeft(x, y, delayed);
+            }
+
+                base.HandleClickLeft(x, y, delayed);
 
             return true; // always return true to avoid passing click events through
         }

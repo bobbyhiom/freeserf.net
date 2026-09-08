@@ -159,6 +159,13 @@ namespace Freeserf
                 if (Logging.MaxLogSize < MinLogSize)
                     Logging.MaxLogSize = MinLogSize;
 
+                // Rebinding
+                const string rebinding = "rebinding";
+                foreach (var entry in configFile.GetValueDictionary(rebinding))
+                {
+                    KeyBindings.LoadUserSetKey(entry.Key, entry.Value);
+                }
+
                 return true;
             }
             catch
@@ -201,6 +208,13 @@ namespace Freeserf
                 configFile.SetValue(logging, "max_log_size", Logging.MaxLogSize);
                 configFile.SetValue(logging, "log_file", Logging.LogFileName);
                 configFile.SetValue(logging, "log_to_console", Logging.LogToConsole);
+
+                // Rebinding
+                const string rebinding = "rebinding";
+                foreach (var keyBinding in KeyBindings.Bindings)
+                {
+                    configFile.SetValue(rebinding, keyBinding.settingKey.ToString(), keyBinding.character);
+                }
 
                 return configFile.Save(filename);
             }

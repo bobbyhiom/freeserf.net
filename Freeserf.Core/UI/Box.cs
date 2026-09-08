@@ -19,6 +19,7 @@
  * along with freeserf.net. If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Freeserf.Render;
 using System;
 using System.Linq;
 
@@ -52,7 +53,8 @@ namespace Freeserf.UI
         static readonly SpriteDefinition[] definitions = new SpriteDefinition[]
         {
             new SpriteDefinition(318u, 320, 184), // used for GameInitBox
-            new SpriteDefinition(319u, 128, 144)  // used for NotificationBox
+            new SpriteDefinition(319u, 128, 144), // used for NotificationBox
+            new SpriteDefinition(318u, 320, 184)  // WidePopupBox
         };
 
         protected BackgroundPattern()
@@ -60,7 +62,7 @@ namespace Freeserf.UI
 
         }
 
-        BackgroundPattern(Render.ISpriteFactory spriteFactory, int type)
+        internal BackgroundPattern(Render.ISpriteFactory spriteFactory, int type)
         {
             definition = definitions[type];
 
@@ -103,6 +105,12 @@ namespace Freeserf.UI
             return new PlayerStatisticBackgroundPattern(spriteFactory, index);
         }
 
+        public static BackgroundPattern CreateWidePopupBoxBackground(
+            Render.ISpriteFactory spriteFactory)
+        {
+            return new BackgroundPattern(spriteFactory, 2);
+        }
+
         public virtual void Draw(GuiObject parent)
         {
             if (parent == null)
@@ -126,6 +134,12 @@ namespace Freeserf.UI
             height = Math.Min(height, definition.SpriteHeight);
 
             background.Resize(width, height);
+        }
+
+        public void SetPosition(int x, int y)
+        {
+            background.X = x;
+            background.Y = y;
         }
 
         public Position Offset
@@ -412,6 +426,11 @@ namespace Freeserf.UI
             return new Border(spriteFactory, Data.Resource.FramePopup, 1, false);
         }
 
+        public static Border CreateWidePopupBoxBorder(Render.ISpriteFactory spriteFactory)
+        {
+            return new Border(spriteFactory, Data.Resource.FramePopup, 0, false);
+        }
+
         public void Draw(GuiObject parent)
         {
             if (parent == null)
@@ -508,6 +527,37 @@ namespace Freeserf.UI
                 this.background.Visible = true;
                 this.background.Offset = border.GetBackgroundOffset();
             }
+        }
+
+        public void SetWideBox()
+        {
+            int oldWidth = Width;
+            int oldHeight = Height;
+
+            int oldX = X;
+            int oldY = Y;
+
+            // Hide old border before replacing it
+            if (border != null)
+                border.Visible = false;
+
+            border = Border.CreateGameInitBoxBorder(
+                interf.RenderView.SpriteFactory
+            );
+
+            SetBackground(
+                BackgroundPattern.CreateWidePopupBoxBackground(
+                    interf.RenderView.SpriteFactory
+                )
+            );
+            
+
+            SetSize(352, 200);
+
+            MoveTo(
+                oldX - (Width - oldWidth) / 2,
+                oldY - (Height - oldHeight) / 2
+            );
         }
 
         protected override void InternalDraw()
