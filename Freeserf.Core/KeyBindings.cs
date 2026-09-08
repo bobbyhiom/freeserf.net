@@ -126,7 +126,7 @@ namespace Freeserf
             if (string.IsNullOrEmpty(value))
                 return;
 
-            if (Enum.TryParse<SettingKey>(type, out var keyBindingType))
+            if (Enum.TryParse<SettingKey>(type, true, out var keyBindingType))
             {
                 var binding = bindings.Find(x => x.settingKey == keyBindingType);
 

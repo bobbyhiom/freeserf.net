@@ -1029,17 +1029,16 @@ namespace Freeserf.UI
             return newText;
         }
 
-        void SetTextInput(int x, int y, string text, SettingKey settingKey)
+        void SetTextInput(int x, int y, string text, KeyBinding binding)
         {
             // Find existing or create
-            SettingTextInput input = settingTextInputs.FirstOrDefault(x => x.settingKey == settingKey);
+            SettingTextInput input = settingTextInputs.FirstOrDefault(x => x.binding.settingKey == binding.settingKey);
 
             if (input == null)
             {
-                var newSettingTextInput = new SettingTextInput(interf, settingKey, 8);
+                var newSettingTextInput = new SettingTextInput(interf, binding, 8);
                 newSettingTextInput.Text = text;
                 newSettingTextInput.Displayed = Displayed;
-                newSettingTextInput.SetSize(64, 8);
                 AddChild(newSettingTextInput, x, y, true);
                 settingTextInputs.Add(newSettingTextInput);
             } else {
@@ -2827,10 +2826,13 @@ namespace Freeserf.UI
                 return;
             }
 
+            // Scale up new font gui as I cant read it
+            Global.NewUIFontScale = 1.5f;
+
             foreach (var binding in bindings)
             {
                 SetText(55, startHeight + (index * 20), binding.friendlyName);
-                SetTextInput(240, startHeight + (index * 20), binding.character.ToString(),binding.settingKey);
+                SetTextInput(240, startHeight + (index * 20), binding.character.ToString(),binding);
                 index++;
             }
         }

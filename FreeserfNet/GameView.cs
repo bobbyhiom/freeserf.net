@@ -176,8 +176,8 @@ namespace Freeserf
                         {
                             // The UI expects 8x8 characters but we may use different sizes.
                             // So we adjust the scale factors accordingly.
-                            float factorX = (8.0f / Global.UIFontCharacterWidth) * (float)VirtualScreen.Size.Width / 640.0f;
-                            float factorY = (8.0f / Global.UIFontCharacterHeight) * (float)VirtualScreen.Size.Height / 480.0f;
+                            float factorX = (8.0f / Global.UIFontCharacterWidth) * (float)VirtualScreen.Size.Width / 640.0f * Global.NewUIFontScale;
+                            float factorY = (8.0f / Global.UIFontCharacterHeight) * (float)VirtualScreen.Size.Height / 480.0f * Global.NewUIFontScale;
 
                             // don't scale a dimension of 0
                             int width = (size.Width == 0) ? 0 : Misc.Round(size.Width * factorX);

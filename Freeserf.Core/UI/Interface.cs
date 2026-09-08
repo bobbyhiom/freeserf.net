@@ -426,6 +426,9 @@ namespace Freeserf.UI
         // Close the current popup. 
         public void ClosePopup()
         {
+            // Default scale
+            Global.NewUIFontScale = 1f;
+
             if (PopupBox == null)
             {
                 return;

@@ -35,5 +35,6 @@ namespace Freeserf
         public const MapPos INVALID_MAPPOS = MapPos.MaxValue;
         public const int FLAG_MAX_RES_COUNT = 8;
         public const int MAX_GAME_SPEED = 40;
+        public static float NewUIFontScale = 1f;
     }
 }
