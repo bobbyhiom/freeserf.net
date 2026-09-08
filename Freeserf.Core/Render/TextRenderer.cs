@@ -24,6 +24,13 @@ namespace Freeserf.Render
         NewUI
     }
 
+    internal enum TextRenderSize
+    {
+        Small,
+        Default,
+        Large
+    }
+
     internal class TextRenderer
     {
         static readonly Encoding encoding = Encoding.GetEncoding("iso-8859-1");

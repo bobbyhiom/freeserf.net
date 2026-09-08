@@ -573,6 +573,15 @@ namespace Freeserf.Render
 
             #endregion
 
+            #region Custom buttons
+
+            guiResourceOffsets.Add(Data.Resource.CustomButtons, guiResourceOffsets[Data.Resource.SpeedButtons]+3);
+            AddSprite(Layer.Gui, guiResourceOffsets[Data.Resource.CustomButtons], Sprite.CreateFromStream(
+                Assembly.GetExecutingAssembly().GetManifestResourceStream("Freeserf.assets.Buttons.ResetBtn.png")
+            ));
+
+            #endregion
+
         }
 
         void AddGuiElements(Data.Resource resourceType, uint num, ref uint index, DataSource data, PixelColor color)
