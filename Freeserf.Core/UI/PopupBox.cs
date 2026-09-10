@@ -102,7 +102,7 @@ namespace Freeserf.UI
             Rebind
         }
 
-        public enum BackgroundPattern
+        public enum eBackgroundPattern
         {
             StripedGreen = 129,   // \\\.
             DiagonalGreen = 310,  // xxx
@@ -375,6 +375,7 @@ namespace Freeserf.UI
         int iconLayer = 0;
 
         static UI.BackgroundPattern[] backgrounds = null;
+        static Dictionary<Type, UI.BackgroundPattern> additionalBackgrounds = new();
 
         void SaveCurrentGame()
         {
@@ -399,20 +400,25 @@ namespace Freeserf.UI
             if (backgrounds != null)
                 return;
 
-            var patterns = Enum.GetValues(typeof(BackgroundPattern));
+            var patterns = Enum.GetValues(typeof(eBackgroundPattern));
             int index = 0;
 
             backgrounds = new UI.BackgroundPattern[patterns.Length];
 
-            foreach (BackgroundPattern pattern in patterns)
+            foreach (eBackgroundPattern pattern in patterns)
             {
-                if (pattern >= BackgroundPattern.OverallComparison && pattern <= BackgroundPattern.CombatPower)
+                if (pattern >= eBackgroundPattern.OverallComparison && pattern <= eBackgroundPattern.CombatPower)
                     backgrounds[index++] = UI.BackgroundPattern.CreatePlayerStatisticPopupBoxBackground(spriteFactory, (uint)pattern);
-                else if (pattern >= BackgroundPattern.Fish && pattern <= BackgroundPattern.Shield)
+                else if (pattern >= eBackgroundPattern.Fish && pattern <= eBackgroundPattern.Shield)
                     backgrounds[index++] = UI.BackgroundPattern.CreateResourceStatisticPopupBoxBackground(spriteFactory, (uint)pattern);
                 else
                     backgrounds[index++] = UI.BackgroundPattern.CreatePopupBoxBackground(spriteFactory, 320u + (uint)pattern);
             }
+
+            //// Add additional backgrounds
+            var sprite = UI.BackgroundPattern.CreateWidePopupBoxBackground(spriteFactory, 2000);// 320u + 129u);
+            //sprite.SetPosition
+            additionalBackgrounds.Add(Type.Rebind, sprite); // Wide background - striped green
         }
 
         void InitPlayerFaceBackgrounds(Render.IColoredRectFactory coloredRectFactory)
@@ -479,7 +485,7 @@ namespace Freeserf.UI
             : base
             (
                   interf,
-                  UI.BackgroundPattern.CreatePopupBoxBackground(interf.RenderView.SpriteFactory, 320u + (uint)BackgroundPattern.StripedGreen),
+                  UI.BackgroundPattern.CreatePopupBoxBackground(interf.RenderView.SpriteFactory, 320u + (uint)eBackgroundPattern.StripedGreen),
                   Border.CreatePopupBoxBorder(interf.RenderView.SpriteFactory)
             )
         {
@@ -821,7 +827,7 @@ namespace Freeserf.UI
 
         UI.BackgroundPattern BackgroundFromType()
         {
-            BackgroundPattern pattern = BackgroundPattern.StripedGreen;
+            eBackgroundPattern pattern = eBackgroundPattern.StripedGreen;
 
             switch (Box)
             {
@@ -837,7 +843,7 @@ namespace Freeserf.UI
                 case Type.Adv1Bld:
                 case Type.Adv2Bld:
                 case Type.StartAttack:
-                    pattern = BackgroundPattern.Construction;
+                    pattern = eBackgroundPattern.Construction;
                     break;
                 case Type.GroundAnalysis:
                 case Type.StatMenu:
@@ -852,7 +858,7 @@ namespace Freeserf.UI
                 case Type.IdleAndPotentialSettlerStats:
                 case Type.PlayerFaces:
                     // TODO: maybe some of those have different background pattern
-                    pattern = BackgroundPattern.StripedGreen;
+                    pattern = eBackgroundPattern.StripedGreen;
                     break;
                 case Type.SettlerMenu:
                 case Type.FoodDistribution:
@@ -863,19 +869,18 @@ namespace Freeserf.UI
                 case Type.TransportPriorities:
                 case Type.InventoryPriorities:
                 case Type.KnightSettings:
-                    pattern = BackgroundPattern.CheckerdDiagonalBrown;
+                    pattern = eBackgroundPattern.CheckerdDiagonalBrown;
                     break;
                 case Type.QuitConfirm:
                 case Type.NoSaveQuitConfirm:
                 case Type.Options:
-                case Type.Rebind:
                 case Type.ExtendedOptions:
                 case Type.ScrollOptions:
                 case Type.GameInitOptions:
                 case Type.ExtendedGameInitOptions:
                 case Type.GameInitScrollOptions:
                 case Type.LoadSave:
-                    pattern = BackgroundPattern.DiagonalGreen;
+                    pattern = eBackgroundPattern.DiagonalGreen;
                     break;
                 case Type.Message:
                 case Type.SettSelectFile: // UNUSED 
@@ -890,7 +895,7 @@ namespace Freeserf.UI
                     // TODO: these are unknown? check later and add the right pattern!
                     break;
                 case Type.Demolish:
-                    pattern = BackgroundPattern.SquaresGreen;
+                    pattern = eBackgroundPattern.SquaresGreen;
                     break;
                 case Type.CastleResources:
                 case Type.MineOutput:
@@ -900,20 +905,28 @@ namespace Freeserf.UI
                 case Type.CastleSerfs:
                 case Type.ResourceDirections:
                 case Type.BuildingStock:
-                    pattern = BackgroundPattern.PlaidAlongGreen;
+                    pattern = eBackgroundPattern.PlaidAlongGreen;
                     break;
                 case Type.ResourceStatistics:
-                    pattern = BackgroundPattern.Fish + currentResourceForStatistics - 1;
+                    pattern = eBackgroundPattern.Fish + currentResourceForStatistics - 1;
                     break;
                 case Type.PlayerStatistics:
-                    pattern = BackgroundPattern.OverallComparison + ((currentPlayerStatisticsMode >> 2) & 3);
+                    pattern = eBackgroundPattern.OverallComparison + ((currentPlayerStatisticsMode >> 2) & 3);
                     break;
                 case Type.DiskMsg: // save/load success or error
-                    pattern = BackgroundPattern.StaresGreen;
+                    pattern = eBackgroundPattern.StaresGreen;
                     break;
             }
 
-            int index = Array.IndexOf(Enum.GetValues(typeof(BackgroundPattern)), pattern);
+            UI.BackgroundPattern additionalBackgroundPatern;
+            additionalBackgrounds.TryGetValue(Box,out additionalBackgroundPatern);
+            if(additionalBackgroundPatern != null)
+            {
+                return additionalBackgroundPatern;
+            }
+            
+
+            int index = Array.IndexOf(Enum.GetValues(typeof(eBackgroundPattern)), pattern);
 
             return backgrounds[index];
         }
@@ -4736,12 +4749,8 @@ namespace Freeserf.UI
                     return true;
                 }
             }
-            else if ( Box == Type.Rebind && clickableTextField != null)
-            {
-
-            }
-
-                base.HandleClickLeft(x, y, delayed);
+            
+            base.HandleClickLeft(x, y, delayed);
 
             return true; // always return true to avoid passing click events through
         }

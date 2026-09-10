@@ -6,6 +6,7 @@ using System.Reflection;
 
 namespace Freeserf.Render
 {
+    using static Freeserf.UI.PopupBox;
     using Data = Data.Data;
     using PixelColor = Sprite.Color;
 
@@ -481,11 +482,11 @@ namespace Freeserf.Render
             AddSprite(Layer.Gui, index++, backgroundCompoundSprite);
 
             // popup backgrounds
-            var popupBackgrounds = Enum.GetValues(typeof(PopupBox.BackgroundPattern));
+            var popupBackgrounds = Enum.GetValues(typeof(PopupBox.eBackgroundPattern));
 
-            foreach (PopupBox.BackgroundPattern popupBackground in popupBackgrounds)
+            foreach (PopupBox.eBackgroundPattern popupBackground in popupBackgrounds)
             {
-                if (popupBackground >= PopupBox.BackgroundPattern.OverallComparison && popupBackground <= PopupBox.BackgroundPattern.Shield)
+                if (popupBackground >= PopupBox.eBackgroundPattern.OverallComparison && popupBackground <= PopupBox.eBackgroundPattern.Shield)
                     continue; // these are compound backgrounds that are handled internal
 
                 backgroundCompoundSprite = new Sprite(128u, 144u);
@@ -580,8 +581,26 @@ namespace Freeserf.Render
                 Assembly.GetExecutingAssembly().GetManifestResourceStream("Freeserf.assets.Buttons.ResetBtn.png")
             ));
 
-            #endregion
 
+            // Rebinding background
+            uint backgroundIndex = (uint)eBackgroundPattern.DiagonalGreen;
+            backgroundSprites = new Sprite[1];
+            backgroundSprites[0] = data.GetSprite(Data.Resource.Icon, backgroundIndex, color);
+
+            backgroundCompoundSprite = new Sprite(320u, 192u);
+
+            for (int row = 0; row < 12; ++row) // 12 rows with 16 pixels each = 192 pixels
+            {
+                for (int column = 0; column < 20; ++column) // 20 columns with 16 pixels each = 320 pixels
+                {
+                    backgroundCompoundSprite.Add(column * 16, row * 16, backgroundSprites[0]);
+                }
+            }
+
+            // Adding a new background sprite for the wide popup box
+            AddSprite(Layer.Gui, guiResourceOffsets[Data.Resource.Icon] + 2000, backgroundCompoundSprite);
+
+            #endregion
         }
 
         void AddGuiElements(Data.Resource resourceType, uint num, ref uint index, DataSource data, PixelColor color)

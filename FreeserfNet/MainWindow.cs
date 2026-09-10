@@ -31,8 +31,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
-using static Freeserf.CommandLine;
-
 
 namespace Freeserf
 {

@@ -54,7 +54,7 @@ namespace Freeserf.UI
         {
             new SpriteDefinition(318u, 320, 184), // used for GameInitBox
             new SpriteDefinition(319u, 128, 144), // used for NotificationBox
-            new SpriteDefinition(318u, 320, 184)  // WidePopupBox
+            new SpriteDefinition(1202u, 320, 184)  // WidePopupBox
         };
 
         protected BackgroundPattern()
@@ -106,9 +106,10 @@ namespace Freeserf.UI
         }
 
         public static BackgroundPattern CreateWidePopupBoxBackground(
-            Render.ISpriteFactory spriteFactory)
+            Render.ISpriteFactory spriteFactory,
+            uint index)
         {
-            return new BackgroundPattern(spriteFactory, 2);
+            return new BackgroundPattern(spriteFactory, 2, index);
         }
 
         public virtual void Draw(GuiObject parent)
@@ -544,13 +545,7 @@ namespace Freeserf.UI
             border = Border.CreateGameInitBoxBorder(
                 interf.RenderView.SpriteFactory
             );
-
-            SetBackground(
-                BackgroundPattern.CreateWidePopupBoxBackground(
-                    interf.RenderView.SpriteFactory
-                )
-            );
-            
+           
 
             SetSize(352, 200);
 
