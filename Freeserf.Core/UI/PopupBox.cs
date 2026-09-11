@@ -98,7 +98,9 @@ namespace Freeserf.UI
             JsCalibUpLeft,
             JsCalibDownRight,
             JsCalibCenter,
-            CtrlsInfo
+            CtrlsInfo,
+            BetterBuildings,
+            BetterAdvancedBuildings
         }
 
         public enum BackgroundPattern
@@ -343,7 +345,8 @@ namespace Freeserf.UI
             JumpToPlayer2,
             JumpToPlayer3,
             JumpToPlayer4,
-            FindRequestedSerf
+            FindRequestedSerf,
+            OptionsBetterBuildMenu
         }
 
         Interface interf;
@@ -370,6 +373,7 @@ namespace Freeserf.UI
         int iconLayer = 0;
 
         static UI.BackgroundPattern[] backgrounds = null;
+        static Dictionary<Type, UI.BackgroundPattern> additionalBackgrounds = new();
 
         void SaveCurrentGame()
         {
@@ -408,6 +412,10 @@ namespace Freeserf.UI
                 else
                     backgrounds[index++] = UI.BackgroundPattern.CreatePopupBoxBackground(spriteFactory, 320u + (uint)pattern);
             }
+
+            // Add additional backgrounds
+            var sprite = UI.BackgroundPattern.CreateBetterBuildBox(spriteFactory, (uint)BackgroundPattern.Construction);
+            additionalBackgrounds.Add(Type.BetterBuildings, sprite); 
         }
 
         void InitPlayerFaceBackgrounds(Render.IColoredRectFactory coloredRectFactory)
@@ -537,6 +545,12 @@ namespace Freeserf.UI
                     break;
                 case Type.Adv2Bld:
                     SetBox(Type.BasicBldFlip);
+                    break;
+                case Type.BetterBuildings:
+                    SetBox(Type.BetterAdvancedBuildings);
+                    break;
+                case Type.BetterAdvancedBuildings:
+                    SetBox(Type.BetterBuildings);
                     break;
                     // TODO ...
             }
@@ -729,6 +743,8 @@ namespace Freeserf.UI
                     case Type.Adv2Bld:
                     case Type.BasicBld:
                     case Type.BasicBldFlip:
+                    case Type.BetterBuildings:
+                    case Type.BetterAdvancedBuildings:
                     case Type.MineBuilding:
                     case Type.GroundAnalysis:
                     case Type.ResourceDirections:
@@ -769,6 +785,8 @@ namespace Freeserf.UI
                     case Type.Adv2Bld:
                     case Type.BasicBld:
                     case Type.BasicBldFlip:
+                    case Type.BetterBuildings:
+                    case Type.BetterAdvancedBuildings:
                     case Type.MineBuilding:
                     case Type.GroundAnalysis:
                     case Type.StartAttack:
@@ -816,79 +834,82 @@ namespace Freeserf.UI
                 case Type.Adv1Bld:
                 case Type.Adv2Bld:
                 case Type.StartAttack:
-                    pattern = BackgroundPattern.Construction;
-                    break;
-                case Type.GroundAnalysis:
-                case Type.StatMenu:
-                case Type.ResourceStats:
-                case Type.BuildingStats1:
-                case Type.BuildingStats2:
-                case Type.BuildingStats3:
-                case Type.BuildingStats4:
-                case Type.FoodProductionCycle:
-                case Type.MaterialProductionCycle:
-                case Type.SettlerStats:
-                case Type.IdleAndPotentialSettlerStats:
-                case Type.PlayerFaces:
-                    // TODO: maybe some of those have different background pattern
-                    pattern = BackgroundPattern.StripedGreen;
-                    break;
-                case Type.SettlerMenu:
-                case Type.FoodDistribution:
-                case Type.PlanksAndSteelDistribution:
-                case Type.CoalAndWheatDistribution:
-                case Type.KnightLevel:
-                case Type.ToolmakerPriorities:
-                case Type.TransportPriorities:
-                case Type.InventoryPriorities:
-                case Type.KnightSettings:
-                    pattern = BackgroundPattern.CheckerdDiagonalBrown;
-                    break;
-                case Type.QuitConfirm:
-                case Type.NoSaveQuitConfirm:
-                case Type.Options:
-                case Type.ExtendedOptions:
-                case Type.ScrollOptions:
-                case Type.GameInitOptions:
-                case Type.ExtendedGameInitOptions:
-                case Type.GameInitScrollOptions:
-                case Type.LoadSave:
-                    pattern = BackgroundPattern.DiagonalGreen;
-                    break;
-                case Type.Message:
-                case Type.SettSelectFile: // UNUSED 
-                case Type.LoadArchive:
-                case Type.Type25:
-                case Type.GameEnd:
-                case Type.JsCalib:
-                case Type.JsCalibUpLeft:
-                case Type.JsCalibDownRight:
-                case Type.JsCalibCenter:
-                case Type.CtrlsInfo:
-                    // TODO: these are unknown? check later and add the right pattern!
-                    break;
-                case Type.Demolish:
-                    pattern = BackgroundPattern.SquaresGreen;
-                    break;
-                case Type.CastleResources:
-                case Type.MineOutput:
-                case Type.OrderedBld:
-                case Type.Defenders:
-                case Type.TransportInfo:
-                case Type.CastleSerfs:
-                case Type.ResourceDirections:
-                case Type.BuildingStock:
-                    pattern = BackgroundPattern.PlaidAlongGreen;
-                    break;
-                case Type.ResourceStatistics:
-                    pattern = BackgroundPattern.Fish + currentResourceForStatistics - 1;
-                    break;
-                case Type.PlayerStatistics:
-                    pattern = BackgroundPattern.OverallComparison + ((currentPlayerStatisticsMode >> 2) & 3);
-                    break;
-                case Type.DiskMsg: // save/load success or error
-                    pattern = BackgroundPattern.StaresGreen;
-                    break;
+                        pattern = BackgroundPattern.Construction;
+                        break;
+                    case Type.GroundAnalysis:
+                    case Type.StatMenu:
+                    case Type.ResourceStats:
+                    case Type.BuildingStats1:
+                    case Type.BuildingStats2:
+                    case Type.BuildingStats3:
+                    case Type.BuildingStats4:
+                    case Type.FoodProductionCycle:
+                    case Type.MaterialProductionCycle:
+                    case Type.SettlerStats:
+                    case Type.IdleAndPotentialSettlerStats:
+                    case Type.PlayerFaces:
+                        // TODO: maybe some of those have different background pattern
+                        pattern = BackgroundPattern.StripedGreen;
+                        break;
+                    case Type.SettlerMenu:
+                    case Type.FoodDistribution:
+                    case Type.PlanksAndSteelDistribution:
+                    case Type.CoalAndWheatDistribution:
+                    case Type.KnightLevel:
+                    case Type.ToolmakerPriorities:
+                    case Type.TransportPriorities:
+                    case Type.InventoryPriorities:
+                    case Type.KnightSettings:
+                        pattern = BackgroundPattern.CheckerdDiagonalBrown;
+                        break;
+                    case Type.QuitConfirm:
+                    case Type.NoSaveQuitConfirm:
+                    case Type.Options:
+                    case Type.ExtendedOptions:
+                    case Type.ScrollOptions:
+                    case Type.GameInitOptions:
+                    case Type.ExtendedGameInitOptions:
+                    case Type.GameInitScrollOptions:
+                    case Type.LoadSave:
+                        pattern = BackgroundPattern.DiagonalGreen;
+                        break;
+                    case Type.Message:
+                    case Type.SettSelectFile: // UNUSED 
+                    case Type.LoadArchive:
+                    case Type.Type25:
+                    case Type.GameEnd:
+                    case Type.JsCalib:
+                    case Type.JsCalibUpLeft:
+                    case Type.JsCalibDownRight:
+                    case Type.JsCalibCenter:
+                    case Type.CtrlsInfo:
+                        // TODO: these are unknown? check later and add the right pattern!
+                        break;
+                    case Type.Demolish:
+                        pattern = BackgroundPattern.SquaresGreen;
+                        break;
+                    case Type.CastleResources:
+                    case Type.MineOutput:
+                    case Type.OrderedBld:
+                    case Type.Defenders:
+                    case Type.TransportInfo:
+                    case Type.CastleSerfs:
+                    case Type.ResourceDirections:
+                    case Type.BuildingStock:
+                        pattern = BackgroundPattern.PlaidAlongGreen;
+                        break;
+                    case Type.ResourceStatistics:
+                        pattern = BackgroundPattern.Fish + currentResourceForStatistics - 1;
+                        break;
+                    case Type.PlayerStatistics:
+                        pattern = BackgroundPattern.OverallComparison + ((currentPlayerStatisticsMode >> 2) & 3);
+                        break;
+                    case Type.DiskMsg: // save/load success or error
+                        pattern = BackgroundPattern.StaresGreen;
+                        break;
+                    case Type.BetterBuildings:
+                    case Type.BetterAdvancedBuildings:
+                         return additionalBackgrounds[Type.BetterBuildings];
             }
 
             int index = Array.IndexOf(Enum.GetValues(typeof(BackgroundPattern)), pattern);
@@ -941,6 +962,11 @@ namespace Freeserf.UI
             buildings[index].Tag = type;
 
             SetBuilding(index, x, y, spriteIndex, spriteInfo);
+
+            if (true)
+            {
+                DrawBuildingCount((spriteInfo.Width + x) - 20, (spriteInfo.Height + y) - 8, type);
+            }
         }
 
         void SetBuilding(int index, int x, int y, uint spriteIndex, SpriteInfo spriteInfo)
@@ -948,6 +974,8 @@ namespace Freeserf.UI
             buildings[index].SetSpriteIndex(spriteIndex);
             buildings[index].MoveTo(x, y);
             buildings[index].Resize(spriteInfo.Width, spriteInfo.Height);
+            //byte displayLayer = (byte)(Math.Min(255, 0));
+            //buildings[index].SetDisplayLayerOffset(displayLayer);
         }
 
         #endregion
@@ -966,7 +994,7 @@ namespace Freeserf.UI
 
         #region Texts
 
-        void SetNumberText(int x, int y, uint number)
+        void SetNumberText(int x, int y, uint number, Render.TextRenderType renderType = Render.TextRenderType.Legacy)
         {
             if (number >= 1000)
             {
@@ -976,7 +1004,7 @@ namespace Freeserf.UI
             }
             else
             {
-                SetText(x, y, number.ToString(), Render.TextRenderType.LegacySpecialDigits);
+                SetText(x, y, number.ToString(), renderType);
             }
         }
 
@@ -1268,6 +1296,39 @@ namespace Freeserf.UI
             flipButton.Displayed = Displayed;
         }
 
+        void DrawBetterBuildingBox(bool advancedBuildings)
+        {
+            ResizeForBetterBuildingPopup();
+
+            //test
+            int num = 6;
+            int index = 0;
+
+            // add hut if military buildings are possible
+            if (interf.Game.CanBuildMilitary(interf.MapCursorPosition))
+            {
+                SetBuilding(index++, 88, 22, Building.Type.Hut);
+                ++num;
+            }
+
+            SetBuilding(index++, 24, 22, Building.Type.Stonecutter);
+            SetBuilding(index++, 8, 67, Building.Type.Lumberjack);
+            SetBuilding(index++, 56, 65, Building.Type.Forester);
+            SetBuilding(index++, 104, 64, Building.Type.Fisher);
+            SetBuilding(index++, 24, 94, Building.Type.Mill);
+            SetBuilding(index++, 88, 96, Building.Type.Boatbuilder);
+
+            if (interf.Game.CanBuildFlag(interf.MapCursorPosition, interf.Player))
+            {
+                SetFlag(index, 72, 117);
+                ++num;
+            }
+
+            ShowBuildings(num);
+
+            flipButton.MoveTo(8, 137);
+        }
+
         static readonly int[] ResourcesLayout = new int[]
         {
             0x28, 1, 0, // resources 
@@ -1447,7 +1508,7 @@ namespace Freeserf.UI
 
             uint numComplete = player.GetCompletedBuildingCount(type);
 
-            SetNumberText(x, y, numComplete);
+            SetNumberText(x, y, numComplete, Render.TextRenderType.LegacySpecialDigits);
 
             int xOffset = 8;
 
@@ -2655,9 +2716,12 @@ namespace Freeserf.UI
             SetText(16, 29, "Mapclick");
             SetText(16, 45, "Fast");
             SetText(16, 54, "Building");
+            SetText(16, 70, "Better");
+            SetText(16, 79, "Build Menu");
 
             SetButton(112, 21, interf.GetOption(Option.FastMapClick) ? 288u : 220u, Action.OptionsFastMapclick);
             SetButton(112, 47, interf.GetOption(Option.FastBuilding) ? 288u : 220u, Action.OptionsFastBuilding);
+            SetButton(112, 73, interf.GetOption(Option.BetterBuildMenu) ? 288u : 220u, Action.OptionsBetterBuildMenu);
 
             string value = "All";
 
@@ -4249,6 +4313,10 @@ namespace Freeserf.UI
                     interf.SwitchOption(Option.FastBuilding);
                     UserConfig.Game.Options = interf.Options;
                     break;
+                case Action.OptionsBetterBuildMenu:
+                    interf.SwitchOption(Option.BetterBuildMenu);
+                    UserConfig.Game.Options = interf.Options;
+                    break;
                 case Action.OptionsInvertScrolling:
                     interf.SwitchOption(Option.InvertScrolling);
                     UserConfig.Game.Options = interf.Options;
@@ -4534,6 +4602,12 @@ namespace Freeserf.UI
                     break;
                 case Type.DiskMsg:
                     DrawDiskMessageBox();
+                    break;
+                case Type.BetterBuildings:
+                    DrawBetterBuildingBox(false);
+                    break;
+                case Type.BetterAdvancedBuildings:
+                    DrawBetterBuildingBox(true);
                     break;
                 default:
                     break;

@@ -19,6 +19,8 @@
  * along with freeserf.net. If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Freeserf.Data;
+using Freeserf.UI;
 using System;
 using System.Linq;
 
@@ -101,6 +103,11 @@ namespace Freeserf.UI
         public static BackgroundPattern CreatePlayerStatisticPopupBoxBackground(Render.ISpriteFactory spriteFactory, uint index)
         {
             return new PlayerStatisticBackgroundPattern(spriteFactory, index);
+        }
+
+        public static BackgroundPattern CreateBetterBuildBox(Render.ISpriteFactory spriteFactory, uint index)
+        {
+            return new RepeatBackgroundPattern(spriteFactory, index, 352/16,200/16);
         }
 
         public virtual void Draw(GuiObject parent)
@@ -355,6 +362,95 @@ namespace Freeserf.UI
                 }
             }
         }
+
+        // this is used for player statistic popups
+        // icons are 16x16
+        // lower background parts are 16x8, 16x16 and 16x12
+        // as the width is 128 we have 8 icons per row
+        // the height will be 148 instead of 144 (we use 7 icon rows)
+        class RepeatBackgroundPattern : BackgroundPattern
+        {
+            readonly Render.ILayerSprite[] iconBackground;
+            readonly int repeatX;
+
+            bool visible = false;
+
+            internal RepeatBackgroundPattern(
+                Render.ISpriteFactory spriteFactory,
+                uint spriteIndex,
+                int repeatX,
+                int repeatY)
+            {
+                this.repeatX = repeatX;
+
+                iconBackground = new Render.ILayerSprite[repeatX * repeatY];
+
+                Position offset =
+                    GuiObject.GetTextureAtlasOffset(Data.Resource.Icon, spriteIndex);
+
+                for (int y = 0; y < repeatY; ++y)
+                {
+                    for (int x = 0; x < repeatX; ++x)
+                    {
+                        int index = y * repeatX + x;
+
+                        iconBackground[index] =
+                            spriteFactory.Create(
+                                16,
+                                16,
+                                offset.X,
+                                offset.Y,
+                                false,
+                                true) as Render.ILayerSprite;
+                    }
+                }
+            }
+
+            public override void Draw(GuiObject parent)
+            {
+                for (int index = 0; index < iconBackground.Length; ++index)
+                {
+                    var sprite = iconBackground[index];
+
+                    int x = index % repeatX;
+                    int y = index / repeatX;
+
+                    sprite.X =
+                        parent.TotalX +
+                        Offset.X +
+                        x * 16;
+
+                    sprite.Y =
+                        parent.TotalY +
+                        Offset.Y +
+                        y * 16;
+
+                    sprite.DisplayLayer = parent.BaseDisplayLayer;
+                    sprite.Layer = parent.Layer;
+
+                    sprite.Visible =
+                        visible &&
+                        parent.Displayed &&
+                        sprite.X < parent.TotalX + parent.Width &&
+                        sprite.Y < parent.TotalY + parent.Height;
+                }
+            }
+
+            public override bool Visible
+            {
+                get => visible;
+                set
+                {
+                    if (visible == value)
+                        return;
+
+                    visible = value;
+
+                    foreach (var sprite in iconBackground)
+                        sprite.Visible = visible;
+                }
+            }
+        }
     }
 
     internal class Border
@@ -508,6 +604,30 @@ namespace Freeserf.UI
                 this.background.Visible = true;
                 this.background.Offset = border.GetBackgroundOffset();
             }
+        }
+
+        public void ResizeForBetterBuildingPopup()
+        {
+            int oldWidth = Width;
+            int oldHeight = Height;
+
+            int oldX = X;
+            int oldY = Y;
+
+            // Hide old border before replacing it
+            if (border != null)
+                border.Visible = false;
+
+            SetSize(352, 200);
+
+            MoveTo(
+                oldX - (Width - oldWidth) / 2,
+                oldY - (Height - oldHeight) / 2
+            );
+
+            border = Border.CreateGameInitBoxBorder(
+                interf.RenderView.SpriteFactory
+            );
         }
 
         protected override void InternalDraw()

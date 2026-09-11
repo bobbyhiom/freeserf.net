@@ -20,6 +20,7 @@
  */
 
 using Freeserf.Data;
+using System;
 using System.Globalization;
 
 namespace Freeserf
@@ -118,8 +119,15 @@ namespace Freeserf
 
                 // Game
                 const string game = "game";
-                if (int.TryParse(configFile.Value(game, "options", ((int)DefaultOptions).ToString()), out int options))
-                    Game.Options = (Option)options | Option.MessagesImportant; // MessagesImportant must be always set
+
+                if (Enum.TryParse<Option>(
+                    configFile.Value(game, "options", (DefaultOptions).ToString()),
+                    ignoreCase: true,
+                    out var options))
+                {
+                    Game.Options = options | Option.MessagesImportant; // MessagesImportant must be always set
+                }
+
                 Game.GraphicDataUsage = configFile.Value(game, "graphic_data_usage", DefaultGraphicDataUsage);
                 Game.SoundDataUsage = configFile.Value(game, "sound_data_usage", DefaultSoundDataUsage);
                 Game.MusicDataUsage = configFile.Value(game, "music_data_usage", DefaultMusicDataUsage);
@@ -201,6 +209,10 @@ namespace Freeserf
                 configFile.SetValue(logging, "max_log_size", Logging.MaxLogSize);
                 configFile.SetValue(logging, "log_file", Logging.LogFileName);
                 configFile.SetValue(logging, "log_to_console", Logging.LogToConsole);
+
+                // Save Options
+                const string extended = "extended";
+                configFile.SetValue(extended, "useBetterBuildingMenu", Logging.LogLevel);
 
                 return configFile.Save(filename);
             }

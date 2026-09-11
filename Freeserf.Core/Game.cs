@@ -54,6 +54,7 @@ namespace Freeserf
         FastMapClick = 0x0080,
         HideCursorWhileScrolling = 0x0100,
         ResetCursorAfterScrolling = 0x0200,
+        BetterBuildMenu = 0x400,
         Default = 0x0039
     }
 

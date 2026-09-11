@@ -6,6 +6,7 @@ using System.Reflection;
 
 namespace Freeserf.Render
 {
+    using static Freeserf.UI.PopupBox;
     using Data = Data.Data;
     using PixelColor = Sprite.Color;
 
@@ -572,7 +573,6 @@ namespace Freeserf.Render
             AddSprite(Layer.Gui, speedButtonIndex, speedButtons);
 
             #endregion
-
         }
 
         void AddGuiElements(Data.Resource resourceType, uint num, ref uint index, DataSource data, PixelColor color)

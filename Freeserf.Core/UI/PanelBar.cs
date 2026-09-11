@@ -681,7 +681,15 @@ namespace Freeserf.UI
                         SetButton(2, ButtonId.MapInactive);
                         SetButton(3, ButtonId.StatsInactive);
                         SetButton(4, ButtonId.SettInactive);
-                        interf.OpenPopup(PopupBox.Type.BasicBld);
+
+                        if (interf.GetOption(Option.BetterBuildMenu))
+                        {
+                            interf.OpenPopup(PopupBox.Type.BetterBuildings);
+                        } 
+                        else
+                        {
+                            interf.OpenPopup(PopupBox.Type.BasicBld);
+                        }
                     }
                     break;
                 case ButtonId.BuildLarge:
@@ -699,7 +707,14 @@ namespace Freeserf.UI
                         SetButton(2, ButtonId.MapInactive);
                         SetButton(3, ButtonId.StatsInactive);
                         SetButton(4, ButtonId.SettInactive);
-                        interf.OpenPopup(PopupBox.Type.BasicBldFlip);
+                        if (interf.GetOption(Option.BetterBuildMenu))
+                        {
+                            interf.OpenPopup(PopupBox.Type.BetterAdvancedBuildings);
+                        }
+                        else
+                        {
+                            interf.OpenPopup(PopupBox.Type.BasicBld);
+                        }
                     }
                     break;
                 case ButtonId.BuildMine:
